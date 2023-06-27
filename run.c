@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <time.h>
 
 const char *shift(int *argc, char ***argv)
 {
@@ -49,11 +52,8 @@ char *concat(int argc, char **argv)
 	return cat;
 }
 
-int main(int argc, char **argv)
+int run(const char *cmd)
 {
-	shift(&argc, &argv); // shift program name;
-		
-	const char *cmd = concat(argc, argv);
 	FILE *file = popen(cmd, "r");
 	if (!file) {
 		printf("failed to run the following command: %s\n", cmd);
@@ -64,5 +64,35 @@ int main(int argc, char **argv)
 		putchar(c);
 	}
 	pclose(file);
+	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	shift(&argc, &argv); // shift program name;
+	const char *cmd = concat(argc, argv);
+
+	time_t latest = 0;
+	char cwd[100];
+	if (getcwd(cwd, 100)) {
+		printf("pwd: %s\n", cwd);
+	} else {
+		perror("failed to get the current working directory\n");
+		return 1;
+	}
+	while(1) {
+		FILE *dir = fopen(cwd, "r");
+		struct stat stats;
+		fstat(fileno(dir), &stats);
+		time_t latest_new = stats.st_ctime;
+		fclose(dir);
+
+		if (latest_new > latest) {
+			run(cmd);
+			latest = latest_new;
+		}
+		sleep(0.5);
+	}
+		
 	return 0;
 }
