@@ -49,6 +49,7 @@ char *concat(int argc, char **argv)
 		my_memcpy(cat+n, " ", 1);
 		++n;
 	}
+	printf("cmd: %s\n", cat);
 	return cat;
 }
 
@@ -75,7 +76,7 @@ int main(int argc, char **argv)
 	time_t latest = 0;
 	char cwd[100];
 	if (getcwd(cwd, 100)) {
-		printf("pwd: %s\n", cwd);
+		printf("cwd: %s\n", cwd);
 	} else {
 		perror("failed to get the current working directory\n");
 		return 1;
